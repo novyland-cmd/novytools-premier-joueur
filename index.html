@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovyTools – Premier Joueur</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-badge" aria-hidden="true">✦</div>
+    <h1>NovyTools</h1>
+    <p class="subtitle">Premier joueur</p>
+  </header>
+
+  <div class="ad-container ad-top" aria-label="Emplacement publicitaire">
+    <span>Emplacement publicitaire futur</span>
+  </div>
+
+  <main class="main-content">
+    <section class="hero-section" aria-labelledby="main-title">
+      <div class="card">
+        <p class="eyebrow">Tirage de départ</p>
+        <h2 id="main-title">Qui commence ?</h2>
+
+        <div class="condition-visual" aria-hidden="true">
+          <img id="condition-image" class="condition-image" src="" alt="" hidden />
+        </div>
+
+        <p id="condition-text" class="condition-text" aria-live="polite">
+          Chargement de la condition...
+        </p>
+
+        <section class="category-control" aria-labelledby="category-title">
+          <h3 id="category-title">Catégorie</h3>
+
+          <div class="category-chips" role="group" aria-label="Choisir une catégorie">
+            <button class="category-chip active" type="button" data-category="all" aria-pressed="true">Toutes</button>
+            <button class="category-chip" type="button" data-category="nourriture" aria-pressed="false">Nourriture</button>
+            <button class="category-chip" type="button" data-category="observation" aria-pressed="false">Observation</button>
+            <button class="category-chip" type="button" data-category="vêtements" aria-pressed="false">Vêtements</button>
+            <button class="category-chip" type="button" data-category="habitudes" aria-pressed="false">Habitudes</button>
+            <button class="category-chip" type="button" data-category="jeux" aria-pressed="false">Jeux</button>
+            <button class="category-chip" type="button" data-category="absurdes" aria-pressed="false">Absurdes</button>
+            <button class="category-chip" type="button" data-category="famille" aria-pressed="false">Famille</button>
+            <button class="category-chip" type="button" data-category="enfants" aria-pressed="false">Enfants</button>
+          </div>
+        </section>
+
+        <button id="mainButton" class="primary-button" type="button">
+          Nouvelle condition
+        </button>
+
+        <section class="about-section" aria-labelledby="about-title">
+          <h3 id="about-title">À propos</h3>
+          <p>
+            Une petite boîte à outils ludique pour choisir le premier joueur rapidement,
+            sans débat interminable autour de la table.
+          </p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="ad-container ad-bottom" aria-label="Emplacement publicitaire">
+    <span>Emplacement publicitaire futur</span>
+  </div>
+
+  <footer class="site-footer">
+    <p>NovyTools – Projet en développement</p>
+
+    <nav class="footer-nav" aria-label="Navigation secondaire">
+      <a href="index.html">Accueil</a>
+      <a href="about.html">À propos</a>
+      <a href="privacy.html">Politique de confidentialité</a>
+      <a href="legal.html">Mentions légales</a>
+    </nav>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

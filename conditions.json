@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "category": "nourriture",
+    "text": "Le dernier joueur à avoir mangé une pomme commence."
+  },
+  {
+    "id": 2,
+    "category": "nourriture",
+    "text": "Le joueur qui préfère le chocolat commence."
+  },
+  {
+    "id": 3,
+    "category": "nourriture",
+    "text": "Celui qui a bu de l’eau le plus récemment commence."
+  },
+  {
+    "id": 4,
+    "category": "observation",
+    "text": "Le joueur qui voit le plus d’objets rouges commence."
+  },
+  {
+    "id": 5,
+    "category": "observation",
+    "text": "Le premier joueur capable de nommer trois objets ronds commence."
+  },
+  {
+    "id": 6,
+    "category": "observation",
+    "text": "Le joueur assis le plus près d’une fenêtre commence."
+  },
+  {
+    "id": 7,
+    "category": "vêtements",
+    "text": "Le joueur qui porte le plus de bleu commence."
+  },
+  {
+    "id": 8,
+    "category": "vêtements",
+    "text": "Le joueur ayant les chaussettes les plus colorées commence."
+  },
+  {
+    "id": 9,
+    "category": "vêtements",
+    "text": "Celui qui porte un vêtement avec une fermeture éclair commence."
+  },
+  {
+    "id": 10,
+    "category": "habitudes",
+    "text": "Le dernier joueur à avoir rangé un jeu commence."
+  },
+  {
+    "id": 11,
+    "category": "habitudes",
+    "text": "Le joueur qui se lève habituellement le plus tôt commence."
+  },
+  {
+    "id": 12,
+    "category": "jeux",
+    "text": "Le joueur qui a gagné la dernière partie commence."
+  },
+  {
+    "id": 13,
+    "category": "jeux",
+    "text": "Le joueur qui a lancé un dé le plus récemment commence."
+  },
+  {
+    "id": 14,
+    "category": "jeux",
+    "text": "Celui qui possède le plus de jeux de société commence."
+  },
+  {
+    "id": 15,
+    "category": "absurdes",
+    "text": "Le joueur capable de faire la grimace la plus rapide commence."
+  },
+  {
+    "id": 16,
+    "category": "absurdes",
+    "text": "Celui qui imite le mieux un robot commence."
+  },
+  {
+    "id": 17,
+    "category": "famille",
+    "text": "Le joueur qui a parlé à un membre de sa famille le plus récemment commence."
+  },
+  {
+    "id": 18,
+    "category": "famille",
+    "text": "Le joueur dont le prénom contient le plus de lettres commence."
+  },
+  {
+    "id": 19,
+    "category": "enfants",
+    "text": "Le plus jeune joueur commence."
+  },
+  {
+    "id": 20,
+    "category": "enfants",
+    "text": "Le joueur qui peut nommer un animal en premier commence."
+  }
+]
