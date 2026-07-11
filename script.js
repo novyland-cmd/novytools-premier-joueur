@@ -2,13 +2,14 @@
 const mainButton = document.querySelector('#mainButton');
 const conditionElement = document.querySelector('#condition-text');
 const conditionImageElement = document.querySelector('#condition-image');
-const categoryChips = document.querySelectorAll('.category-chip');
+const categoryFiltersElement = document.querySelector('#category-filters');
 
-// Images disponibles dans le dossier /images/.
-// Important : un site statique ne peut pas lire automatiquement le contenu d'un dossier.
-// Ajoute ici les noms réels de tes fichiers PNG.
+// Dossier contenant les illustrations.
 const IMAGE_FOLDER = 'images/';
-const imageFiles = [
+
+// Liste explicite des fichiers PNG réellement disponibles dans le projet.
+// Mets cette liste à jour chaque fois qu'une nouvelle image est ajoutée au dossier images/.
+const availableImages = [
   'meeple-couronne.png',
   'meeple-carte.png',
   'meeple-jumelles.png',
@@ -20,11 +21,7 @@ const imageFiles = [
   'meeple-tasse.png',
   'meeple-telephone.png',
   'meeple-tshirt.png',
-  'meeple-chaussures.png'//,
-  //'meeple-gateau.png',
-  //'meeple-lunettes.png',
-  //'meeple-casque.png',
-  //'meeple-reveil.png'
+  'meeple-chaussures.png'
 ];
 
 // Banque de conditions chargée depuis le fichier JSON.
@@ -34,22 +31,39 @@ let conditions = [];
 let selectedCategory = 'all';
 
 // Dernière condition affichée pendant la session actuelle.
-// Cette information est temporaire et disparaît au rechargement de la page.
 let lastConditionId = null;
+
+// Empêche une boucle infinie si une image de remplacement échoue aussi.
+let fallbackAttempted = false;
 
 // Initialisation de l'application au chargement de la page.
 document.addEventListener('DOMContentLoaded', initApp);
 
 async function initApp() {
   try {
-    conditions = await loadConditions();
+    const loadedConditions = await loadConditions();
 
-    setupCategoryChips();
+    // On conserve uniquement les entrées exploitables afin d'éviter
+    // les erreurs si le JSON contient une valeur incomplète ou invalide.
+    conditions = getValidConditions(loadedConditions);
+
+    const categories = extractCategories(conditions);
+    createCategoryFilters(categories);
+
+    if (conditions.length === 0) {
+      hideImage();
+      displayCondition('Aucune condition valide n’est disponible pour le moment.');
+      return;
+    }
 
     // Affiche automatiquement une première condition au chargement.
     handleNewCondition();
   } catch (error) {
     console.error('Erreur lors du chargement des conditions :', error);
+
+    // Le bouton « Toutes » reste disponible même si le JSON ne se charge pas.
+    conditions = [];
+    createCategoryFilters([]);
     hideImage();
     displayCondition('Impossible de charger les conditions.');
   }
@@ -62,7 +76,103 @@ async function loadConditions() {
     throw new Error('Le fichier conditions.json est introuvable.');
   }
 
-  return await response.json();
+  const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    throw new Error('Le fichier conditions.json doit contenir un tableau.');
+  }
+
+  return data;
+}
+
+function getValidConditions(conditionList) {
+  if (!Array.isArray(conditionList)) {
+    return [];
+  }
+
+  return conditionList.filter((condition) => {
+    return condition
+      && typeof condition === 'object'
+      && typeof condition.text === 'string'
+      && condition.text.trim() !== '';
+  });
+}
+
+function normalizeCategory(category) {
+  if (typeof category !== 'string') {
+    return '';
+  }
+
+  return category.trim();
+}
+
+function extractCategories(conditionList) {
+  const uniqueCategories = new Set();
+
+  conditionList.forEach((condition) => {
+    const category = normalizeCategory(condition.category);
+
+    if (category) {
+      uniqueCategories.add(category);
+    }
+  });
+
+  return Array.from(uniqueCategories).sort((categoryA, categoryB) => {
+    return categoryA.localeCompare(categoryB, 'fr', { sensitivity: 'base' });
+  });
+}
+
+function formatCategoryLabel(category) {
+  const normalizedCategory = normalizeCategory(category);
+
+  if (!normalizedCategory) {
+    return '';
+  }
+
+  const readableLabel = normalizedCategory
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('fr-FR');
+
+  return readableLabel.charAt(0).toLocaleUpperCase('fr-FR') + readableLabel.slice(1);
+}
+
+function createCategoryChip(category, label, isActive = false) {
+  const chip = document.createElement('button');
+
+  chip.type = 'button';
+  chip.className = 'category-chip';
+  chip.dataset.category = category;
+  chip.textContent = label;
+  chip.setAttribute('aria-pressed', String(isActive));
+
+  if (isActive) {
+    chip.classList.add('active');
+  }
+
+  chip.addEventListener('click', handleCategoryClick);
+  return chip;
+}
+
+function createCategoryFilters(categories) {
+  if (!categoryFiltersElement) {
+    console.error('Le conteneur des filtres de catégories est introuvable.');
+    return;
+  }
+
+  categoryFiltersElement.replaceChildren();
+  selectedCategory = 'all';
+  lastConditionId = null;
+
+  // Le bouton « Toutes » est toujours créé en premier et actif par défaut.
+  const allChip = createCategoryChip('all', 'Toutes', true);
+  categoryFiltersElement.appendChild(allChip);
+
+  categories.forEach((category) => {
+    const label = formatCategoryLabel(category);
+    const chip = createCategoryChip(category, label);
+    categoryFiltersElement.appendChild(chip);
+  });
 }
 
 function getSelectedCategory() {
@@ -76,7 +186,18 @@ function getFilteredConditions() {
     return conditions;
   }
 
-  return conditions.filter((condition) => condition.category === activeCategory);
+  return conditions.filter((condition) => {
+    return normalizeCategory(condition.category) === activeCategory;
+  });
+}
+
+function getConditionIdentifier(condition) {
+  if (condition.id !== null && condition.id !== undefined) {
+    return String(condition.id);
+  }
+
+  // Repli utile si une condition ne possède pas d'identifiant explicite.
+  return `${normalizeCategory(condition.category)}::${condition.text.trim()}`;
 }
 
 function getRandomCondition(conditionList) {
@@ -84,38 +205,55 @@ function getRandomCondition(conditionList) {
     return null;
   }
 
-  // S'il n'y a qu'une seule condition, on la retourne directement.
-  // Cela évite toute boucle inutile ou infinie.
   if (conditionList.length === 1) {
     return conditionList[0];
   }
 
   let selectedCondition;
 
-  // Tant que la condition tirée est la même que la dernière affichée,
-  // on effectue un nouveau tirage.
   do {
     const randomIndex = Math.floor(Math.random() * conditionList.length);
     selectedCondition = conditionList[randomIndex];
-  } while (selectedCondition.id === lastConditionId);
+  } while (getConditionIdentifier(selectedCondition) === lastConditionId);
 
   return selectedCondition;
 }
 
-function getRandomImage() {
-  if (!Array.isArray(imageFiles) || imageFiles.length === 0) {
+function buildImagePath(fileName) {
+  if (typeof fileName !== 'string' || fileName.trim() === '') {
     return null;
   }
 
-  const randomIndex = Math.floor(Math.random() * imageFiles.length);
-  return `${IMAGE_FOLDER}${imageFiles[randomIndex]}`;
+  return `${IMAGE_FOLDER}${fileName.trim()}`;
 }
 
-function getImageForCondition(condition) {
-  // Évolution future : remplacer la ligne suivante par :
-  // return condition.image ? `${IMAGE_FOLDER}${condition.image}` : null;
-  // La logique d'affichage restera ensuite identique.
-  return getRandomImage();
+function getRandomFallbackImage() {
+  if (!Array.isArray(availableImages) || availableImages.length === 0) {
+    return null;
+  }
+
+  const randomIndex = Math.floor(Math.random() * availableImages.length);
+  return buildImagePath(availableImages[randomIndex]);
+}
+
+function getConditionImagePath(condition) {
+  if (!condition || typeof condition !== 'object') {
+    return getRandomFallbackImage();
+  }
+
+  const imageName = typeof condition.image === 'string'
+    ? condition.image.trim()
+    : '';
+
+  if (!imageName || !availableImages.includes(imageName)) {
+    return getRandomFallbackImage();
+  }
+
+  return buildImagePath(imageName);
+}
+
+function resetImageErrorState() {
+  fallbackAttempted = false;
 }
 
 function hideImage() {
@@ -125,6 +263,7 @@ function hideImage() {
 
   conditionImageElement.hidden = true;
   conditionImageElement.removeAttribute('src');
+  conditionImageElement.alt = '';
 }
 
 function animateImageChange() {
@@ -133,28 +272,53 @@ function animateImageChange() {
   }
 
   conditionImageElement.classList.remove('is-changing');
-
-  // Force le redémarrage de l'animation CSS à chaque nouveau tirage.
   void conditionImageElement.offsetWidth;
-
   conditionImageElement.classList.add('is-changing');
 }
 
-function displayImage(imagePath) {
-  if (!conditionImageElement || !imagePath) {
+function displayConditionImage(condition) {
+  if (!conditionImageElement) {
+    return;
+  }
+
+  resetImageErrorState();
+
+  const imagePath = getConditionImagePath(condition);
+
+  if (!imagePath) {
     hideImage();
     return;
   }
 
   conditionImageElement.hidden = false;
+  conditionImageElement.alt = `Illustration : ${condition.text.trim()}`;
   conditionImageElement.src = imagePath;
   animateImageChange();
 }
 
+function handleImageError() {
+  if (!conditionImageElement) {
+    return;
+  }
+
+  if (fallbackAttempted) {
+    hideImage();
+    return;
+  }
+
+  fallbackAttempted = true;
+  const fallbackImagePath = getRandomFallbackImage();
+
+  if (!fallbackImagePath || conditionImageElement.src.endsWith(fallbackImagePath)) {
+    hideImage();
+    return;
+  }
+
+  conditionImageElement.src = fallbackImagePath;
+}
+
 if (conditionImageElement) {
-  // Si le fichier image est absent ou mal nommé, on masque simplement l'image.
-  // La condition demeure affichée et l'application continue de fonctionner.
-  conditionImageElement.addEventListener('error', hideImage);
+  conditionImageElement.addEventListener('error', handleImageError);
 }
 
 function animateConditionChange() {
@@ -163,10 +327,7 @@ function animateConditionChange() {
   }
 
   conditionElement.classList.remove('is-changing');
-
-  // Force le redémarrage de l'animation CSS à chaque nouveau tirage.
   void conditionElement.offsetWidth;
-
   conditionElement.classList.add('is-changing');
 }
 
@@ -190,14 +351,18 @@ function handleNewCondition() {
     return;
   }
 
-  const image = getImageForCondition(randomCondition);
-
-  displayImage(image);
-  displayCondition(randomCondition.text);
-  lastConditionId = randomCondition.id;
+  displayConditionImage(randomCondition);
+  displayCondition(randomCondition.text.trim());
+  lastConditionId = getConditionIdentifier(randomCondition);
 }
 
 function setActiveCategoryChip(activeChip) {
+  if (!categoryFiltersElement) {
+    return;
+  }
+
+  const categoryChips = categoryFiltersElement.querySelectorAll('.category-chip');
+
   categoryChips.forEach((chip) => {
     const isActive = chip === activeChip;
 
@@ -211,14 +376,9 @@ function handleCategoryClick(event) {
   const newCategory = clickedChip.dataset.category || 'all';
 
   selectedCategory = newCategory;
+  lastConditionId = null;
   setActiveCategoryChip(clickedChip);
   handleNewCondition();
-}
-
-function setupCategoryChips() {
-  categoryChips.forEach((chip) => {
-    chip.addEventListener('click', handleCategoryClick);
-  });
 }
 
 function animateButtonClick() {
